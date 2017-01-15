@@ -3,33 +3,30 @@ import random
 import logging
 import hlt
 from hlt import NORTH, EAST, SOUTH, WEST, STILL, Move
-from keras.models import Sequential
-from keras.layers import Dense, Activation
 import numpy
 
-
-def get_model():
-    model = Sequential(
-            [Dense(20, input_dim=9),
-            Activation("relu"),
-            Dense(5),
-            Activation("softmax")]
-            )
-    model.compile(optimizer='rmsprop',
-                          loss='mse')
-    return model
+possible_moves = [NORTH, EAST, SOUTH, WEST, STILL]
 
 myID, game_map = hlt.get_init()
 hlt.send_init("MyPythonBot")
 
 #Square = namedtuple('Square', 'x y owner strength production')
 
+class Model(object):
+    def __init__(self):
+        input_length = 9
+        hidden_length = 20
+        self.hidden = numpy.random.normal(size=(input_length,  hidden_length))
+        self.output = numpy.random.normal(size=(hidden_length, 5))
+    def predict(self, input):
+        return input @ self.hidden @ self.output
+
+model = Model()
 while True:
     game_map.get_frame()
     # logging.basicConfig()
     logging.basicConfig(format='%(asctime)-15s %(message)s',
         level=logging.INFO, filename="bot.log")
-    model = get_model()
     def gen_input(square):
         """ Generate the next move """
         neighbors = list(game_map.neighbors(square))
@@ -39,6 +36,7 @@ while True:
         # productions =
         my_strength = [square.strength]
         model_input = numpy.array(my_values+op_values+my_strength)
+        logging.info(model.predict(model_input))
         return model_input
 
     def gen_move(square):
@@ -46,9 +44,9 @@ while True:
             return random.choice((NORTH, EAST, SOUTH, WEST, STILL))
         else:
             return STILL
-    inputs = numpy.vstack(gen_input(square) for square in game_map if square.owner == myID)
-    # logging.info(inputs)
-    logging.info(model.predict(inputs))
+    # inputs = numpy.vstack(gen_input(square) for square in game_map if square.owner == myID)
+    # logging.info(model.predict(inputs))
     #moves = [Move(square, random.choice((NORTH, EAST, SOUTH, WEST, STILL))) for square in game_map if square.owner == myID]
-    moves = [Move(square, gen_move(square)) for square in game_map if square.owner == myID]
+    #moves = [Move(square, gen_move(square)) for square in game_map if square.owner == myID]
+    moves = [Move(square, numpy.argmax(model.predict(gen_input(square)))) for square in game_map if square.owner == myID]
     hlt.send_frame(moves)
