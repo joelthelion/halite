@@ -13,10 +13,6 @@ logging.basicConfig(format='%(asctime)-15s %(message)s',
         level=logging.INFO, filename="bot.log")
 
 possible_moves = np.array([NORTH, EAST, SOUTH, WEST, STILL])
-myID, game_map = hlt.get_init()
-hlt.send_init("MyPythonBot")
-
-#Square = namedtuple('Square', 'x y owner strength production')
 
 class Model(object):
     def __init__(self):
@@ -38,8 +34,15 @@ class Model(object):
         logging.info(np.argmax(values, axis=1))
         return possible_moves[np.argmax(values, axis=1)]
 
+
+myID, game_map = hlt.get_init()
 model = Model()
+model.predict(np.array([[0]*9])) # dummy computation to warm up model
 logging.info(model._model.get_weights())
+hlt.send_init("MyPythonBot")
+
+#Square = namedtuple('Square', 'x y owner strength production')
+
 while True:
     game_map.get_frame()
     def gen_input(square):
