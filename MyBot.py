@@ -1,12 +1,16 @@
 """ My awesome RL bot """
 import random
+import os
+import pickle
 import logging
 import hlt
 from hlt import NORTH, EAST, SOUTH, WEST, STILL, Move
 import numpy
 
-possible_moves = [NORTH, EAST, SOUTH, WEST, STILL]
+logging.basicConfig(format='%(asctime)-15s %(message)s',
+        level=logging.INFO, filename="bot.log")
 
+possible_moves = [NORTH, EAST, SOUTH, WEST, STILL]
 myID, game_map = hlt.get_init()
 hlt.send_init("MyPythonBot")
 
@@ -14,19 +18,24 @@ hlt.send_init("MyPythonBot")
 
 class Model(object):
     def __init__(self):
-        input_length = 9
-        hidden_length = 20
-        self.hidden = numpy.random.normal(size=(input_length,  hidden_length))
-        self.output = numpy.random.normal(size=(hidden_length, 5))
+        if os.path.exists("weights.pck"):
+            logging.info("Reading weights from weights.pck")
+            self.hidden, self.output = pickle.load(open("weights.pck","rb"))
+        else:
+            logging.info("Generating random weights...")
+            input_length = 9
+            hidden_length = 20
+            self.hidden = numpy.random.normal(size=(input_length,  hidden_length))
+            self.output = numpy.random.normal(size=(hidden_length, 5))
+            pickle.dump((self.hidden, self.output), open("weights.pck", "wb"))
+    def relu(self, vector):
+        return numpy.maximum(vector,0,vector)
     def predict(self, input):
-        return input @ self.hidden @ self.output
+        return self.relu(input @ self.hidden) @ self.output
 
 model = Model()
 while True:
     game_map.get_frame()
-    # logging.basicConfig()
-    logging.basicConfig(format='%(asctime)-15s %(message)s',
-        level=logging.INFO, filename="bot.log")
     def gen_input(square):
         """ Generate the next move """
         neighbors = list(game_map.neighbors(square))
