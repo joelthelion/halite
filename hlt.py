@@ -1,6 +1,7 @@
 import sys
 from collections import namedtuple
 from itertools import chain, zip_longest
+import numpy as np
 
 
 def grouper(iterable, n, fillvalue=None):
@@ -25,12 +26,29 @@ Move = namedtuple('Move', 'square direction')
 
 
 class GameMap:
-    def __init__(self, size_string, production_string, map_string=None):
+    def __init__(self):
+        pass
+    def from_network(size_string, production_string, map_string=None):
+        self = GameMap()
         self.width, self.height = tuple(map(int, size_string.split()))
         self.production = tuple(tuple(map(int, substring)) for substring in grouper(production_string.split(), self.width))
         self.contents = None
         self.get_frame(map_string)
         self.starting_player_count = len(set(square.owner for square in self)) - 1
+        return self
+
+    def from_replay(width, height, productions, frame):
+        self = GameMap()
+        self.width = width
+        self.height = height
+        self.production = productions
+        self.contents = [[Square(x,y,owner,strength,production)
+            for x, (owner,strength,production) in enumerate(row)]
+            for y, row in enumerate(np.concatenate([
+                frame,
+                np.array(self.production).reshape((height,width,1)) ],axis=2))]
+        self.starting_player_count = len(set(square.owner for square in self)) - 1
+        return self
 
     def get_frame(self, map_string=None):
         "Updates the map information from the latest frame provided by the Halite game environment."
@@ -94,7 +112,7 @@ def get_string():
 
 def get_init():
     playerID = int(get_string())
-    m = GameMap(get_string(), get_string())
+    m = GameMap.from_network(get_string(), get_string())
     return playerID, m
 
 
