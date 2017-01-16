@@ -15,6 +15,7 @@ logging.basicConfig(format='%(asctime)-15s %(message)s',
 
 myID, game_map = hlt.get_init()
 model = Model()
+model._model.load_weights("weights.hd5")
 model.predict(np.array([[0]*9])) # dummy computation to warm up model
 logging.info(model._model.get_weights())
 hlt.send_init("MyPythonBot")
