@@ -6,41 +6,40 @@ import logging
 import hlt
 from hlt import NORTH, EAST, SOUTH, WEST, STILL, Move
 import numpy as np
+from keras.models import Sequential
+from keras.layers import Dense, Activation
 
 logging.basicConfig(format='%(asctime)-15s %(message)s',
         level=logging.INFO, filename="bot.log")
 
-possible_moves = [NORTH, EAST, SOUTH, WEST, STILL]
+possible_moves = np.array([NORTH, EAST, SOUTH, WEST, STILL])
 myID, game_map = hlt.get_init()
 hlt.send_init("MyPythonBot")
-
-def softmax(x):
-    e_x = np.exp(x - np.max(x))
-    out = e_x / e_x.sum()
-    return out
 
 #Square = namedtuple('Square', 'x y owner strength production')
 
 class Model(object):
     def __init__(self):
-        if os.path.exists("weights.pck"):
-            logging.info("Reading weights from weights.pck")
-            self.hidden, self.output = pickle.load(open("weights.pck","rb"))
-        else:
-            logging.info("Generating random weights...")
-            input_length = 9
-            hidden_length = 20
-            self.hidden = np.random.normal(size=(input_length,  hidden_length))
-            self.hidden /= len(self.hidden)
-            self.output = np.random.normal(size=(hidden_length, 5))
-            self.output /= len(self.output)
-            pickle.dump((self.hidden, self.output), open("weights.pck", "wb"))
-    def relu(self, vector):
-        return np.maximum(vector,0,vector)
+        input_length = 9
+        hidden_length = 20
+        self._model = Sequential([
+            Dense(hidden_length, input_dim = input_length, init="uniform"),
+            Activation('relu'),
+            Dense(5, init="uniform"),
+            Activation('softmax')
+            ])
+        self._model.compile(optimizer='rmsprop', loss='mse')
     def predict(self, input):
-        return softmax(self.relu(input @ self.hidden) @ self.output)
+        return self._model.predict(input)
+    def gen_moves(self, input):
+        logging.info(input.shape)
+        values = self.predict(input)
+        logging.info(values)
+        logging.info(np.argmax(values, axis=1))
+        return possible_moves[np.argmax(values, axis=1)]
 
 model = Model()
+logging.info(model._model.get_weights())
 while True:
     game_map.get_frame()
     def gen_input(square):
@@ -52,27 +51,9 @@ while True:
         # productions =
         my_strength = [square.strength]
         model_input = np.array(my_values+op_values+my_strength)
-        logging.info(model.predict(model_input))
         return model_input
 
-    def gen_move(model, square):
-        values = model.predict(gen_input(square))
-        ran = random.random()
-        s = 0.
-        for n, v in enumerate(values):
-            s += v
-            if s >= ran:
-                break
-        return possible_moves[n]
-    # def gen_move(square):
-    #     if square.strength > 30:
-    #         return random.choice((NORTH, EAST, SOUTH, WEST, STILL))
-    #     else:
-    #         return STILL
-    # inputs = np.vstack(gen_input(square) for square in game_map if square.owner == myID)
-    # logging.info(model.predict(inputs))
-    #moves = [Move(square, random.choice((NORTH, EAST, SOUTH, WEST, STILL))) for square in game_map if square.owner == myID]
-    #moves = [Move(square, gen_move(square)) for square in game_map if square.owner == myID]
-    #moves = [Move(square, np.argmax(model.predict(gen_input(square)))) for square in game_map if square.owner == myID]
-    moves = [Move(square, gen_move(model, square)) for square in game_map if square.owner == myID]
+    directions = model.gen_moves(np.vstack(gen_input(square) for square in game_map if square.owner == myID))
+    moves = [Move(square, directions[n]) for n, square in enumerate(s for s in game_map if s.owner == myID)]
+    logging.info(moves)
     hlt.send_frame(moves)
