@@ -55,14 +55,24 @@ while True:
         logging.info(model.predict(model_input))
         return model_input
 
-    def gen_move(square):
-        if square.strength > 30:
-            return random.choice((NORTH, EAST, SOUTH, WEST, STILL))
-        else:
-            return STILL
+    def gen_move(model, square):
+        values = model.predict(gen_input(square))
+        ran = random.random()
+        s = 0.
+        for n, v in enumerate(values):
+            s += v
+            if s >= ran:
+                break
+        return possible_moves[n]
+    # def gen_move(square):
+    #     if square.strength > 30:
+    #         return random.choice((NORTH, EAST, SOUTH, WEST, STILL))
+    #     else:
+    #         return STILL
     # inputs = np.vstack(gen_input(square) for square in game_map if square.owner == myID)
     # logging.info(model.predict(inputs))
     #moves = [Move(square, random.choice((NORTH, EAST, SOUTH, WEST, STILL))) for square in game_map if square.owner == myID]
     #moves = [Move(square, gen_move(square)) for square in game_map if square.owner == myID]
-    moves = [Move(square, np.argmax(model.predict(gen_input(square)))) for square in game_map if square.owner == myID]
+    #moves = [Move(square, np.argmax(model.predict(gen_input(square)))) for square in game_map if square.owner == myID]
+    moves = [Move(square, gen_move(model, square)) for square in game_map if square.owner == myID]
     hlt.send_frame(moves)
