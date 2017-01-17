@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import random
 from zipfile import ZipFile
 import pickle
 import json
@@ -20,12 +21,11 @@ with ZipFile("/home/joel/data/halite/replays.zip") as zipf:
                         replay["productions"], frame)
                 for row in game_map.contents:
                     for square in row:
-                        if square.owner != 0:
+                        if random.random() < 0.03 and square.owner != 0:
                             # stupid starter kit translation
                             move = (moves[square.y][square.x] -1) % 5
                             outputs.append(move)
                             inputs.append(Model.gen_input(game_map, square))
-        if n_file > 5:
-            break
-    pickle.dump((inputs, outputs), open("samples.pck","wb"))
+        if n_file > 10:
+            pickle.dump((inputs, outputs), open("samples.pck","wb"))
 

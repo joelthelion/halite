@@ -13,6 +13,8 @@ class Model(object):
         self._model = Sequential([
             Dense(hidden_length, input_dim = input_length, init="uniform"),
             Activation('relu'),
+            Dense(10, init="uniform"),
+            Activation('relu'),
             Dense(5, init="uniform"),
             Activation('softmax')
             ])
