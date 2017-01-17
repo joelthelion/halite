@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import shutil
 import random
 from zipfile import ZipFile
 import pickle
@@ -15,7 +16,7 @@ with ZipFile("/home/joel/data/halite/replays.zip") as zipf:
     for n_file, f in enumerate(fl):
         with zipf.open(f) as fo:
             replay = json.load(fo)
-            print(f)
+            print(f.filename)
             for frame, moves in zip(replay["frames"],replay["moves"]):
                 game_map = hlt.GameMap.from_replay(replay["width"],replay["height"],
                         replay["productions"], frame)
@@ -27,5 +28,6 @@ with ZipFile("/home/joel/data/halite/replays.zip") as zipf:
                             outputs.append(move)
                             inputs.append(Model.gen_input(game_map, square))
         if n_file > 10:
-            pickle.dump((inputs, outputs), open("samples.pck","wb"))
+            np.savez("samples.tmp", inputs=inputs, outputs=outputs)
+            shutil.move("samples.tmp.npz", "samples.npz")
 

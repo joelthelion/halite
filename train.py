@@ -7,7 +7,9 @@ import pickle
 from keras.callbacks import ProgbarLogger
 
 
-inputs, moves = pickle.load(open("samples.pck", "rb"))
+samples = np.load("samples.npz")
+inputs = samples["inputs"]
+moves = samples["outputs"]
 model = Model()
 # moves = np.array(moves[:100]).reshape((100,1))
 # inputs = np.vstack(inputs[:100])
