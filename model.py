@@ -18,7 +18,8 @@ class Model(object):
             Dense(5, init="uniform"),
             Activation('softmax')
             ])
-        self._model.compile(optimizer='rmsprop', loss='sparse_categorical_crossentropy')
+        # self._model.compile(optimizer='rmsprop', loss='sparse_categorical_crossentropy')
+        self._model.compile(optimizer='sgd', loss='sparse_categorical_crossentropy')
         self._model.predict(np.array([[0]*input_length])) # dummy computation to warm up model
     def predict(self, input):
         return self._model.predict(input)
@@ -27,6 +28,7 @@ class Model(object):
         values = self.predict(input)
         logging.info(values)
         moves = [np.random.choice(possible_moves, p=val) for val in values]
+        # moves = np.argmax(values, axis=1)
         logging.info(moves)
         return moves
     def gen_input(game_map, square):
