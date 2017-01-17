@@ -18,8 +18,8 @@ with ZipFile("/home/joel/data/halite/replays.zip") as zipf:
             replay = json.load(fo)
             print(f.filename)
             for n_frame, (frame, moves) in enumerate(zip(replay["frames"],replay["moves"])):
-                if n_frame > 30:
-                    continue
+                # if n_frame > 30:
+                #     continue
                 game_map = hlt.GameMap.from_replay(replay["width"],replay["height"],
                         replay["productions"], frame)
                 for row in game_map.contents:
@@ -30,6 +30,9 @@ with ZipFile("/home/joel/data/halite/replays.zip") as zipf:
                             outputs.append(move)
                             inputs.append(Model.gen_input(game_map, square))
         if n_file > 20:
+            # features = np.vstack(inputs)
+            # features = features - np.mean(features, axis=0)
+            # features = features / np.std(features, axis=0)
             np.savez("samples.tmp", inputs=inputs, outputs=outputs)
             shutil.move("samples.tmp.npz", "samples.npz")
 

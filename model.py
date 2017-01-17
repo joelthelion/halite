@@ -27,6 +27,11 @@ class Model(object):
         logging.info(input.shape)
         values = self.predict(input)
         logging.info(values)
+        # moves = [np.random.choice(possible_moves, p=val) for val in values]
+        # def gamma(array, exp=2):
+        #     temp = array ** exp
+        #     return temp/temp.sum()
+        # moves = [np.random.choice(possible_moves, p=gamma(val)) for val in values]
         moves = [np.random.choice(possible_moves, p=val) for val in values]
         # moves = np.argmax(values, axis=1)
         logging.info(moves)
