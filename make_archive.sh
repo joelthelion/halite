@@ -1,1 +1,1 @@
-zip bot.zip *.py *.pck
+zip bot.zip *.py
