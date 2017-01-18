@@ -16,9 +16,11 @@ print(set(outputs))
 # outputs = np.random.randint(0,6,size=outputs.shape)
 model = Model()
 
-print(outputs[:10])
-print(inputs[:10])
+n_print=45
+
+print(inputs[:n_print])
 model._model.fit(inputs, outputs, verbose=True, validation_split=0.5, nb_epoch = 5)
-print(model.predict(inputs)[:10])
-print(np.argmax(model.predict(inputs)[:10],axis=1))
+print(model.predict(inputs)[:n_print])
+print(outputs[:n_print])
+print(np.argmax(model.predict(inputs)[:n_print],axis=1))
 model._model.save_weights("value_weights.hd5")
