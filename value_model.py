@@ -1,17 +1,22 @@
 import logging
 from keras.models import Sequential
-from keras.layers import Dense, Activation
+from keras.layers import Dense, Activation, Dropout
+from keras.layers.normalization import BatchNormalization
 import numpy as np
 
 class Model(object):
     def __init__(self):
-        input_length = 19
+        input_length = 18
         hidden_length = 20
         self._model = Sequential([
+            # Dropout(0.2, input_shape=(18,)),
+            # Dense(hidden_length),
             Dense(hidden_length, input_dim = input_length),
             Activation('relu'),
+            BatchNormalization(),
             Dense(10),
             Activation('relu'),
+            BatchNormalization(),
             Dense(6),
             Activation('softmax')
             # Dense(6, input_dim = input_length),

@@ -34,7 +34,7 @@ def frame_to_features(replay, frame_id):
 
     remaining_turns = len(replay["frames"]) - frame_id - 1
 
-    all = np.concatenate([territory[1:], strength[1:], productions[1:], [remaining_turns]])
+    all = np.concatenate([territory[1:], strength[1:], productions[1:]]) #, [remaining_turns]])
 
     # print("territory",territory)
     # print("strength",strength)

@@ -18,7 +18,7 @@ model = Model()
 
 print(outputs[:10])
 print(inputs[:10])
-model._model.fit(inputs, outputs, verbose=True, validation_split=0.5, nb_epoch = 50)
+model._model.fit(inputs, outputs, verbose=True, validation_split=0.5, nb_epoch = 5)
 print(model.predict(inputs)[:10])
 print(np.argmax(model.predict(inputs)[:10],axis=1))
 model._model.save_weights("value_weights.hd5")
