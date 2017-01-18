@@ -32,7 +32,9 @@ def frame_to_features(replay, frame_id):
     productions = np.zeros(7)
     productions[players] = np.bincount(player_idx, weights=prod.ravel())
 
-    all = np.concatenate([territory[1:], strength[1:], productions[1:]])
+    remaining_turns = len(replay["frames"]) - frame_id - 1
+
+    all = np.concatenate([territory[1:], strength[1:], productions[1:], [remaining_turns]])
 
     # print("territory",territory)
     # print("strength",strength)
