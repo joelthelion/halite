@@ -12,7 +12,7 @@ class Model(object):
             Activation('relu'),
             Dense(10),
             Activation('relu'),
-            # Dense(10),
+            Dense(10),
             # Activation('relu'),
             # Dense(10),
             # Activation('relu'),
@@ -23,7 +23,7 @@ class Model(object):
             # Dense(6, input_dim = input_length),
             # Activation('softmax')
             ])
-        self._model.compile(optimizer='rmsprop', loss='sparse_categorical_crossentropy')
+        self._model.compile(optimizer='rmsprop', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
         # self._model.compile(optimizer='sgd', loss='sparse_categorical_crossentropy')
         self._model.predict(np.array([[0]*input_length])) # dummy computation to warm up model
     def predict(self, input):
