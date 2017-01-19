@@ -6,7 +6,7 @@ import numpy as np
 
 class Model(object):
     def __init__(self):
-        input_length = 19
+        input_length = 18
         hidden_length = 20
         self._model = Sequential([
             # Dropout(0.2, input_shape=(18,)),

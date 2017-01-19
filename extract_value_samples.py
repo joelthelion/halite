@@ -16,6 +16,10 @@ def winner(replay):
     players, counts = np.unique(armies[:,0], return_counts=True)
     counts[0] = -1 # the background can't win
     winner = players[np.argmax(counts)]
+    if winner == 0:
+        print(winner)
+        print(players,counts)
+        qsdfsdf
     return winner
 
 def frame_to_features(replay, frame_id):
