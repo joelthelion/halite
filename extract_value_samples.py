@@ -50,6 +50,7 @@ with ZipFile("/home/joel/data/halite/replays.zip") as zipf:
     fl = [zf for zf in zipf.filelist if zf.filename.endswith(".hlt")]
     outputs = []
     inputs = []
+    filenames = []
     for n_file, f in enumerate(fl):
         with zipf.open(f) as fo:
             replay = json.load(fo)
@@ -59,13 +60,16 @@ with ZipFile("/home/joel/data/halite/replays.zip") as zipf:
             except ValueError:
                 print("couldn't determine winner, skipping game")
                 continue
+            if len(replay["frames"]) < 5: #remove buggy games
+                continue
             for n_frame in range(len(replay["frames"])):
                 if n_frame % 3 != 0:
                     continue
                 inputs.append(frame_to_features(replay,n_frame))
                 outputs.append(output)
+                filenames.append(f.filename)
                 # print(inputs,outputs)
         if n_file > 20:
-            np.savez("value_samples.tmp", inputs=inputs, outputs=np.vstack(outputs))
+            np.savez("value_samples.tmp", inputs=inputs, outputs=np.vstack(outputs), filenames=filenames)
             shutil.move("value_samples.tmp.npz", "value_samples.npz")
 

@@ -5,7 +5,6 @@ import hlt
 from value_model import Model
 import pickle
 from itertools import permutations
-from IPython import embed
 
 np.set_printoptions(threshold=1e6)
 
@@ -29,9 +28,12 @@ def perm_outputs(out, p):
     perm_mapping=dict(zip(p,range(6)))
     return [perm_mapping[o] for o in out]
 outputs = np.hstack(perm_outputs(outputs,p) for p in perm)
+filenames = np.repeat(samples["filenames"], perm_keep)
 
+from sklearn.model_selection import train_test_split
+i_train, i_test, o_train, o_test = train_test_split(inputs,outputs,
+        stratify=filenames, test_size=0.5)
 
-# embed()
 
 
 print(inputs.shape)
@@ -45,8 +47,9 @@ model = Model()
 n_print=45
 
 print(inputs[:n_print])
-model._model.fit(inputs, outputs, verbose=True, validation_split=0.5, nb_epoch = 5)
-print(model.predict(inputs)[:n_print])
+# model._model.fit(inputs, outputs, verbose=True, validation_split=0.5, nb_epoch = 5)
+model._model.fit(i_train, o_train, verbose=True, validation_data=(i_test,o_test), nb_epoch = 5)
+# print(model.predict(inputs)[:n_print])
 print(outputs[:n_print])
 print(np.argmax(model.predict(inputs)[:n_print],axis=1))
 model._model.save_weights("value_weights.hd5")
