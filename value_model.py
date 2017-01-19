@@ -2,6 +2,7 @@ import logging
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout
 from keras.layers.normalization import BatchNormalization
+from keras.optimizers import RMSprop, SGD
 import numpy as np
 
 class Model(object):
@@ -23,8 +24,9 @@ class Model(object):
             # Dense(6, input_dim = input_length),
             # Activation('softmax')
             ])
-        self._model.compile(optimizer='rmsprop', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-        # self._model.compile(optimizer='sgd', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+        # optimizer = SGD()
+        optimizer = RMSprop()
+        self._model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
         self._model.predict(np.array([[0]*input_length])) # dummy computation to warm up model
     def predict(self, input):
         return self._model.predict(input)

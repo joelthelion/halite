@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 
+import random
+import pickle
+from itertools import permutations
 import numpy as np
 import hlt
 from value_model import Model
-import pickle
-from itertools import permutations
 
 np.set_printoptions(threshold=1e6)
 
 samples = np.load("value_samples.npz")
 inputs = samples["inputs"][:,:-1] # remove turns for now
 outputs = np.array(samples["outputs"]).ravel()
+filenames = samples["filenames"]
 print(np.min(outputs))
 print(np.max(outputs))
 # print(set(outputs))
@@ -19,7 +21,8 @@ print(np.unique(outputs, return_counts=True))
 print(inputs.shape)
 print(inputs.nbytes*720/1e9)
 perm_keep = 10
-perm = np.array(list(permutations(range(6))))[:perm_keep]
+perm = list(permutations(range(6)))
+perm = np.array(random.sample(perm, perm_keep))
 input_perm = np.hstack([perm,perm+6,perm+12])
 # inputs = np.vstack(i[input_perm] for i in inputs)
 inputs = np.vstack(inputs[:,p] for p in input_perm)
@@ -30,10 +33,15 @@ def perm_outputs(out, p):
 outputs = np.hstack(perm_outputs(outputs,p) for p in perm)
 filenames = np.repeat(samples["filenames"], perm_keep)
 
-from sklearn.model_selection import train_test_split
-i_train, i_test, o_train, o_test = train_test_split(inputs,outputs,
-        stratify=filenames, test_size=0.5)
 
+fn = np.unique(filenames)
+train_fn = fn[:len(fn)/2]
+train_idx = np.where(np.in1d(filenames,train_fn))
+test_idx = np.where(np.logical_not(np.in1d(filenames,train_fn)))
+i_train = inputs[train_idx]
+o_train = outputs[train_idx]
+i_test = inputs[test_idx]
+o_test = outputs[test_idx]
 
 
 print(inputs.shape)
