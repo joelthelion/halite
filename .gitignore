@@ -3,3 +3,5 @@ __pycache__/
 halite
 *.npz
 *.hd5
+.Rproj.user
+*.csv
