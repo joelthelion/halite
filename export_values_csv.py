@@ -19,7 +19,7 @@ def make_player_input(inputs, outputs, p):
 stack = np.vstack(make_player_input(inputs, outputs, p) for p in range(6))
 np.savez("player_values.npz", stack)
 player_inputs = pandas.DataFrame(stack,
-        columns=["territory","strength","production","remaining_turns", "player", "winner"])
+        columns=["territory","strength","production","turn", "player", "winner"])
 player_inputs["filename"] = np.repeat(filenames, 6)
 
 player_inputs.to_csv("results.csv")

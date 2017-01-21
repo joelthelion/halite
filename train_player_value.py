@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import random
 import numpy as np
 import hlt
 from player_value_model import Model
@@ -7,18 +8,21 @@ from player_value_model import Model
 np.set_printoptions(threshold=1e6)
 
 samples = np.load("./player_values.npz")["arr_0"]
-inputs = samples[:,:3]
+inputs = samples[:,(0,1,2,4)] # 4 is turn
 outputs = samples[:,4] == samples[:,5] # did the player win?
 filenames = samples[:,-1]
 
 fn = np.unique(filenames)
-train_fn = fn[:len(fn)/2]
+np.random.shuffle(fn)
+train_fn  = fn[:len(fn)//2]
 train_idx = np.where(np.in1d(filenames,train_fn))
-test_idx = np.where(np.logical_not(np.in1d(filenames,train_fn)))
-i_train = inputs[train_idx]
-o_train = outputs[train_idx]
-i_test = inputs[test_idx]
-o_test = outputs[test_idx]
+np.random.shuffle(train_idx)
+test_idx  = np.where(np.logical_not(np.in1d(filenames,train_fn)))
+np.random.shuffle(test_idx)
+i_train   = inputs[train_idx]
+o_train   = outputs[train_idx]
+i_test    = inputs[test_idx]
+o_test    = outputs[test_idx]
 
 
 print(inputs.shape)
