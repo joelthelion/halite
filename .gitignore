@@ -5,3 +5,5 @@ halite
 *.hd5
 .Rproj.user
 *.csv
+.Rhistory
+*.h5
