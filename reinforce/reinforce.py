@@ -61,7 +61,10 @@ def predict_for_pos(input):
     possible_moves = np.array([NORTH, EAST, SOUTH, WEST, STILL])
     inputs = np.vstack([np.concatenate([input,one_hot(n, 5)]) for n in range(len(possible_moves))])
     outputs = model.predict(inputs)
-    return outputs.argmax()
+    outputs /= sum(outputs)
+    # return outputs.argmax()
+    logging.info(outputs)
+    return np.random.choice(possible_moves, p=outputs.ravel())
 
 sendInit('joelator')
 
