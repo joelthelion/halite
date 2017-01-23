@@ -21,7 +21,7 @@ logging.basicConfig(format='%(asctime)-15s %(message)s',
 VISIBLE_DISTANCE = 4
 neigh_input_dim=4*(2*VISIBLE_DISTANCE+1)*(2*VISIBLE_DISTANCE+1)
 action_input_dim=5
-input_dim = neigh_input_dim + action_input_dim
+input_dim = neigh_input_dim + action_input_dim + 1 # (1 for current state value)
 
 myID, gameMap = getInit()
 
@@ -58,13 +58,14 @@ def one_hot(i,N):
     a[i] = 1
     return a
 
-def predict_for_pos(input):
+def predict_for_pos(area_input, current_value):
     possible_moves = np.array([NORTH, EAST, SOUTH, WEST, STILL])
-    inputs = np.vstack([np.concatenate([input,one_hot(n, 5)]) for n in range(len(possible_moves))])
+    inputs = np.vstack([np.concatenate([area_input,one_hot(n, 5), [current_value*10]])
+        for n in range(len(possible_moves))])
     outputs = model.predict(inputs)
     outputs /= sum(outputs)
     index = np.random.choice(range(len(possible_moves)), p=outputs.ravel())
-    return possible_moves[index], outputs.ravel()[index]
+    return possible_moves[index], inputs[index].ravel(), outputs.ravel()[index]
 
 def frame_to_value_input(frame, turn):
     game_map = np.array([[(x.owner, x.production, x.strength) for x in row] for row in frame.contents])
@@ -83,18 +84,28 @@ logging.info("My ID: %s", myID)
 value_model = load_model("./reinforce/value_model.h5")
 
 turn = 0
+frame = getFrame()
+stack = frame_to_stack(frame)
+position = random.choice(np.transpose(np.nonzero(stack[0])))
+state_values = value_model.predict(frame_to_value_input(frame, turn))[0]
+reward = state_values[myID-1]
 while True:
-    frame = getFrame()
-    stack = frame_to_stack(frame)
     # positions = np.transpose(np.nonzero(stack[0]))
     # Only pick one random position for easier q-learning
-    position = random.choice(np.transpose(np.nonzero(stack[0])))
-    output, Q = predict_for_pos(stack_to_input(stack, position))
-    state_values = value_model.predict(frame_to_value_input(frame, turn))[0]
-    reward = state_values[myID-1]
-    logging.info("%s a:%s Q:%.2f V:%.2f (sv %s)", position, output, Q, reward, state_values)
+    area_inputs = stack_to_input(stack, position)
+    output, Qinputs, Q = predict_for_pos(area_inputs, reward)
+    # logging.info("%s a:%s Q:%.2f V:%.2f (qinputs %s)", position, output, Q, reward, Qinputs.ravel())
     sendFrame([Move(Location(position[1],position[0]), output)])
     turn += 1
+    old_reward = reward
 
-    # output = model.predict(np.array([stack_to_input(stack, p) for p in positions]))
-    # sendFrame([Move(Location(positions[i][1],positions[i][0]), output[i].argmax()) for i in range(len(positions))])
+    frame = getFrame()
+    stack = frame_to_stack(frame)
+    position = random.choice(np.transpose(np.nonzero(stack[0])))
+    state_values = value_model.predict(frame_to_value_input(frame, turn))[0]
+    reward = state_values[myID-1]
+
+    logging.info("%s a:%s Q:%.2f V:%.2f Vt+1:%.2f", position, output, Q, reward, old_reward)
+    with open("games.csv", "ab") as f:
+        np.savetxt(f, np.hstack([Qinputs, [reward]]), newline=" ")
+        f.write(b"\n")
