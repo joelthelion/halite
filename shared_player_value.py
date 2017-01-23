@@ -46,30 +46,30 @@ raw_outputs = outputs
 filenames = samples["filenames"]
 
 
-# print(np.min(outputs))
-# print(np.max(outputs))
-# # print(set(outputs))
-# print(np.unique(outputs, return_counts=True))
-# print(inputs.shape)
-# print(inputs.nbytes*720/1e9)
-# perm_keep = 30
-# perm = list(permutations(range(6)))
-# perm = np.array(random.sample(perm, perm_keep))
-# input_perm = np.hstack([perm,perm+6,perm+12])
-# print(input_perm.shape)
-# print(np.repeat(-1,len(input_perm)).reshape(len(input_perm),1).shape)
-# input_perm = np.hstack((input_perm, np.repeat(-1,len(input_perm)).reshape((len(input_perm),1))))
-# # inputs = np.vstack(i[input_perm] for i in inputs)
-# inputs = np.vstack(inputs[:,p] for p in input_perm)
-# # outputs = np.hstack(perm[o] for o in outputs) # doesn't work
-# def perm_outputs(out, p):
-#     perm_mapping=dict(zip(p,range(6)))
-#     return [perm_mapping[o] for o in out]
-# outputs = np.hstack(perm_outputs(outputs,p) for p in perm)
-# filenames = np.repeat(samples["filenames"], perm_keep)
+print(np.min(outputs))
+print(np.max(outputs))
+# print(set(outputs))
+print(np.unique(outputs, return_counts=True))
+print(inputs.shape)
+print(inputs.nbytes*720/1e9)
+perm_keep = 30
+perm = list(permutations(range(6)))
+perm = np.array(random.sample(perm, perm_keep))
+input_perm = np.hstack([perm,perm+6,perm+12])
+print(input_perm.shape)
+print(np.repeat(-1,len(input_perm)).reshape(len(input_perm),1).shape)
+input_perm = np.hstack((input_perm, np.repeat(-1,len(input_perm)).reshape((len(input_perm),1))))
+# inputs = np.vstack(i[input_perm] for i in inputs)
+inputs = np.vstack(inputs[:,p] for p in input_perm)
+# outputs = np.hstack(perm[o] for o in outputs) # doesn't work
+def perm_outputs(out, p):
+    perm_mapping=dict(zip(p,range(6)))
+    return [perm_mapping[o] for o in out]
+outputs = np.hstack(perm_outputs(outputs,p) for p in perm)
+filenames = np.repeat(samples["filenames"], perm_keep)
 
 fn = np.unique(filenames)
-train_fn = fn[:len(fn)/2]
+train_fn = fn[:len(fn)//2]
 train_idx = np.where(np.in1d(filenames,train_fn))
 test_idx = np.where(np.logical_not(np.in1d(filenames,train_fn)))
 i_train = inputs[train_idx]
@@ -87,16 +87,15 @@ def split_inputs(input):
 n_print=45
 
 print(inputs[:n_print])
-# model._model.fit(inputs, outputs, verbose=True, validation_split=0.5, nb_epoch = 5)
-# model.fit(split_inputs(i_train), o_train, verbose=True, validation_data=(split_inputs(i_test),o_test), nb_epoch = 5, batch_size = 1000,
-#           callbacks=[EarlyStopping(patience=10),
-#                      ModelCheckpoint('model.h5',verbose=1,save_best_only=True),
-#                      ])
-model = load_model("./model.h5")
+model.fit(split_inputs(i_train), o_train, verbose=True, validation_data=(split_inputs(i_test),o_test), nb_epoch = 5, batch_size = 1000,
+          callbacks=[EarlyStopping(patience=10),
+                     ModelCheckpoint('value_model.h5',verbose=1,save_best_only=True),
+                     ])
+# model = load_model("./value_model.h5")
 # print(model.predict(inputs)[:n_print])
 print(samples["filenames"][:n_print])
 print(raw_outputs[:n_print])
 preds = model.predict(split_inputs(raw_inputs[:n_print]))
 print(preds)
 print(np.argmax(preds,axis=1))
-model.save_weights("value_weights.hd5")
+# model.save_weights("value_weights.hd5")
