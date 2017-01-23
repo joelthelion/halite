@@ -7,3 +7,4 @@ halite
 *.csv
 .Rhistory
 *.h5
+*.log

@@ -14,6 +14,7 @@ from networking import getInit, sendFrame, sendInit, getFrame
 from hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
 import logging
 import sys
+from train import get_trained_model
 
 logging.basicConfig(format='%(asctime)-15s %(message)s',
         level=logging.INFO, filename="bot.log")
@@ -25,21 +26,7 @@ input_dim = neigh_input_dim + action_input_dim + 1 # (1 for current state value)
 
 myID, gameMap = getInit()
 
-# input: state + action. output: value at next turn
-model = Sequential([Dense(512, input_dim=input_dim),
-                    LeakyReLU(),
-                    Dense(512),
-                    LeakyReLU(),
-                    Dense(512),
-                    LeakyReLU(),
-                    Dense(1, activation='sigmoid')])
-model.compile('nadam','mse')
-model.predict(np.zeros((2,input_dim))).shape # make sure model is compiled during init
-
-# with open(os.devnull, 'w') as sys.stderr:
-#     from keras.models import load_model
-#     model = load_model('model.h5')
-
+model = get_trained_model()
 
 def stack_to_input(stack, position):
     return np.take(np.take(stack,
@@ -105,7 +92,7 @@ while True:
     state_values = value_model.predict(frame_to_value_input(frame, turn))[0]
     reward = state_values[myID-1]
 
-    logging.info("%s a:%s Q:%.2f V:%.2f Vt+1:%.2f", position, output, Q, reward, old_reward)
-    with open("games.csv", "ab") as f:
+    # logging.info("%s a:%s Q:%.2f V:%.2f Vt+1:%.2f", position, output, Q, reward, old_reward)
+    with open("games2.csv", "ab") as f:
         np.savetxt(f, np.hstack([Qinputs, [reward]]), newline=" ")
         f.write(b"\n")
