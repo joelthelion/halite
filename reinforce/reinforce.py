@@ -45,57 +45,54 @@ def one_hot(i,N):
     a[i] = 1
     return a
 
-def predict_for_pos(area_input, current_value):
+def predict_for_pos(area_input, territory):
     possible_moves = np.array([NORTH, EAST, SOUTH, WEST, STILL])
-    inputs = np.vstack([np.concatenate([area_input,one_hot(n, 5), [current_value*10]])
+    inputs = np.vstack([np.concatenate([area_input,one_hot(n, 5), [territory]] )
         for n in range(len(possible_moves))])
     outputs = model.predict(inputs)
     outputs /= sum(outputs)
-    def gamma(array, exp=2):
-        temp = array ** exp
-        return temp/temp.sum()
-    index = np.random.choice(range(len(possible_moves)), p=gamma(outputs.ravel()))
-    return possible_moves[index], inputs[index].ravel(), outputs.ravel()[index]
+    return possible_moves, inputs.ravel(), outputs.ravel()
 
-def frame_to_value_input(frame, turn):
-    game_map = np.array([[(x.owner, x.production, x.strength) for x in row] for row in frame.contents])
-    value_input = np.zeros(19)
-    value_input = [
-        np.array([[np.sum(game_map[:,:,0] == p),
-        np.sum((game_map[:,:,0] == p) * game_map[:,:,1])/10,
-        np.sum((game_map[:,:,0] == p) * game_map[:,:,2])/255,
-        turn]]) for p in range(1,7)]
-    # logging.info("%s", value_input)
-    return value_input
+def gamma(array, exp=2):
+    temp = array ** exp
+    return temp/temp.sum()
+
+def get_territory(frame, player):
+    return np.array([[x.owner==player for x in row] for row in frame.contents]).sum()
 
 sendInit('joelator')
 logging.info("My ID: %s", myID)
 
-value_model = load_model("./reinforce/value_model.h5")
-
 turn = 0
 frame = getFrame()
 stack = frame_to_stack(frame)
-position = random.choice(np.transpose(np.nonzero(stack[0])))
-state_values = value_model.predict(frame_to_value_input(frame, turn))[0]
-reward = state_values[myID-1]
+# Only pick one random position for easier q-learning
+territory = get_territory(frame, myID)
 while True:
-    # positions = np.transpose(np.nonzero(stack[0]))
-    # Only pick one random position for easier q-learning
+    position = random.choice(np.transpose(np.nonzero(stack[0])))
     area_inputs = stack_to_input(stack, position)
-    output, Qinputs, Q = predict_for_pos(area_inputs, reward)
-    # logging.info("%s a:%s Q:%.2f V:%.2f (qinputs %s)", position, output, Q, reward, Qinputs.ravel())
-    sendFrame([Move(Location(position[1],position[0]), output)])
+    possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, territory)
+    # Sample a move following Pi(s)
+    index = np.random.choice(range(len(possible_moves)), p=Qs.ravel())
+    move = possible_moves[index]
+    Q = Qs[index]
+    Qinput = Qinputs[index]
+    # logging.info("%s a:%s Q:%.2f V:%.2f (qinputs %s)", position, move, Q, territory, Qinput.ravel())
+    sendFrame([Move(Location(position[1],position[0]), move)])
     turn += 1
-    old_reward = reward
+    old_territory = territory
 
     frame = getFrame()
     stack = frame_to_stack(frame)
-    position = random.choice(np.transpose(np.nonzero(stack[0])))
-    state_values = value_model.predict(frame_to_value_input(frame, turn))[0]
-    reward = state_values[myID-1]
+    area_inputs = stack_to_input(stack, position)
+    possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, territory)
+    territory = get_territory(frame, myID)
 
-    # logging.info("%s a:%s Q:%.2f V:%.2f Vt+1:%.2f", position, output, Q, reward, old_reward)
-    # with open("games2.csv", "ab") as f:
-    #     np.savetxt(f, np.hstack([Qinputs, [reward]]), newline=" ")
-    #     f.write(b"\n")
+
+    logging.info("%s a:%s Q:%.2f t+1:%.2f reward:%.2f maxQt+1:%.2f", position, move, Q, territory, territory - old_territory, max(Qs))
+    with open("games.csv", "ab") as f:
+        np.savetxt(f, np.hstack([Qinput, [territory-old_territory, max(Qs)]]), newline=" ")
+        f.write(b"\n")
+
+    # new position for next turn
+    position = random.choice(np.transpose(np.nonzero(stack[0])))
