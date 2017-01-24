@@ -35,7 +35,7 @@ def get_new_model():
     return model
 
 def get_trained_model():
-    return load_model("q_model.h5")
+    return load_model("q_model_2.h5")
 
 def train(model):
     with open("games.csv") as f:

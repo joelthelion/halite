@@ -54,7 +54,8 @@ def predict_for_pos(area_input, current_value):
     def gamma(array, exp=2):
         temp = array ** exp
         return temp/temp.sum()
-    index = np.random.choice(range(len(possible_moves)), p=gamma(outputs.ravel()))
+    # index = np.random.choice(range(len(possible_moves)), p=gamma(outputs.ravel()))
+    index = np.argmax(outputs.ravel())
     return possible_moves[index], inputs[index].ravel(), outputs.ravel()[index]
 
 def frame_to_value_input(frame, turn):
@@ -74,28 +75,18 @@ logging.info("My ID: %s", myID)
 value_model = load_model("./reinforce/value_model.h5")
 
 turn = 0
-frame = getFrame()
-stack = frame_to_stack(frame)
-position = random.choice(np.transpose(np.nonzero(stack[0])))
-state_values = value_model.predict(frame_to_value_input(frame, turn))[0]
-reward = state_values[myID-1]
 while True:
-    # positions = np.transpose(np.nonzero(stack[0]))
-    # Only pick one random position for easier q-learning
-    area_inputs = stack_to_input(stack, position)
-    output, Qinputs, Q = predict_for_pos(area_inputs, reward)
-    # logging.info("%s a:%s Q:%.2f V:%.2f (qinputs %s)", position, output, Q, reward, Qinputs.ravel())
-    sendFrame([Move(Location(position[1],position[0]), output)])
-    turn += 1
-    old_reward = reward
-
     frame = getFrame()
     stack = frame_to_stack(frame)
-    position = random.choice(np.transpose(np.nonzero(stack[0])))
-    state_values = value_model.predict(frame_to_value_input(frame, turn))[0]
-    reward = state_values[myID-1]
-
-    # logging.info("%s a:%s Q:%.2f V:%.2f Vt+1:%.2f", position, output, Q, reward, old_reward)
-    # with open("games2.csv", "ab") as f:
-    #     np.savetxt(f, np.hstack([Qinputs, [reward]]), newline=" ")
-    #     f.write(b"\n")
+    moves = []
+    for position in np.transpose(np.nonzero(stack[0])):
+        state_values = value_model.predict(frame_to_value_input(frame, turn))[0]
+        value = state_values[myID-1]
+        # positions = np.transpose(np.nonzero(stack[0]))
+        # Only pick one random position for easier q-learning
+        area_inputs = stack_to_input(stack, position)
+        output, Qinputs, Q = predict_for_pos(area_inputs, value)
+        moves.append(Move(Location(position[1],position[0]), output))
+        # logging.info("%s a:%s Q:%.2f V:%.2f (qinputs %s)", position, output, Q, value, Qinputs.ravel())
+    sendFrame(moves)
+    turn += 1
