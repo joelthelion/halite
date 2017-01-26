@@ -30,15 +30,16 @@ logging.info("My ID: %s", myID)
 while True:
     frame = getFrame()
     stack = frame_to_stack(frame, myID)
-    position = random.choice(np.transpose(np.nonzero(stack[0])))
-    area_inputs = stack_to_input(stack, position)
-    possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, model)
-    # Sample a move following Pi(s)
-    index = np.argmax(Qs)
-    move = possible_moves[index]
-    Q = Qs[index]
-    Qinput = Qinputs[index]
-    territory = get_territory(frame, myID)
-    logging.info("%s a:%s Q:%.2f t:%.2f Qs:%s", position, move, Q, territory, Qs)
+    positions = np.transpose(np.nonzero(stack[0]))
+    # position = random.choice()
+    moves = []
+    for position in positions:
+        area_inputs = stack_to_input(stack, position)
+        possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, model)
+        # Sample a move following Pi(s)
+        index = np.argmax(Qs)
+        moves.append(possible_moves[index])
+    # Q = Qs[index]
+    # Qinput = Qinputs[index]
 
-    sendFrame([Move(Location(position[1],position[0]), move)])
+    sendFrame([Move(Location(position[1],position[0]), move) for move in moves])

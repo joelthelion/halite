@@ -35,7 +35,7 @@ def get_new_model():
     return model
 
 def get_trained_model():
-    return load_model("q_model.h5")
+    return load_model("q_model2.h5")
 
 def train(model):
     with open("games.csv") as f:
@@ -49,7 +49,7 @@ def train(model):
     print(outputs.shape)
     model.fit(inputs, outputs, validation_split=0.5, nb_epoch = 10,
           callbacks=[EarlyStopping(patience=10),
-                     ModelCheckpoint('q_model.h5',verbose=1,save_best_only=True)]
+                     ModelCheckpoint('q_model2.h5',verbose=1,save_best_only=True)]
             )
 
 if __name__ == '__main__':

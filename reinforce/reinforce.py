@@ -60,8 +60,8 @@ logging.basicConfig(format='%(asctime)-15s %(message)s',
 if __name__ == '__main__':
     myID, gameMap = getInit()
 
-    # model = get_trained_model()
-    model = get_new_model()
+    model = get_trained_model()
+    # model = get_new_model()
 
     sendInit('joelator')
     logging.info("My ID: %s", myID)
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     while True:
         position = random.choice(np.transpose(np.nonzero(stack[0])))
         area_inputs = stack_to_input(stack, position)
-        possible_moves, Qinputs, Qs = predict_for_pos(area_inputs)
+        possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, model)
         # Sample a move following Pi(s)
         index = np.random.choice(range(len(possible_moves)), p=Qs.ravel())
         move = possible_moves[index]
@@ -86,7 +86,7 @@ if __name__ == '__main__':
         frame = getFrame()
         stack = frame_to_stack(frame, myID)
         area_inputs = stack_to_input(stack, position)
-        possible_moves, Qinputs, Qs = predict_for_pos(area_inputs)
+        possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, model)
         territory = get_territory(frame, myID)
 
 
