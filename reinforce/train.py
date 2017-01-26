@@ -34,11 +34,8 @@ def get_new_model():
     model.predict(np.zeros((2,input_dim))).shape # make sure model is compiled during init
     return model
 
-def get_trained_model():
-    return load_model("q_model2.h5")
-
-def train(model):
-    with open("games.csv") as f:
+def train(model, run_id):
+    with open("data/games_%s.csv" % run_id) as f:
         data = np.loadtxt(f)
     # with open("games2.csv") as f:
     #     data = np.vstack([data, np.loadtxt(f)])
@@ -49,9 +46,14 @@ def train(model):
     print(outputs.shape)
     model.fit(inputs, outputs, validation_split=0.5, nb_epoch = 10,
           callbacks=[EarlyStopping(patience=10),
-                     ModelCheckpoint('q_model2.h5',verbose=1,save_best_only=True)]
+                     ModelCheckpoint('data/qmodel_%s.h5'%run_id,verbose=1,save_best_only=True)]
             )
 
 if __name__ == '__main__':
-    model = get_new_model()
-    train(model)
+    if len(sys.argv) < 2:
+        model = get_new_model()
+        run_id = 0
+    else:
+        run_id = int(sys.argv[1])
+        model = load_model("data/qmodel_%s.h5" % (run_id-1))
+    train(model, run_id)

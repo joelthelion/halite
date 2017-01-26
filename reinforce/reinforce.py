@@ -14,7 +14,7 @@ from networking import getInit, sendFrame, sendInit, getFrame
 from hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
 import logging
 import sys
-from train import get_trained_model, get_new_model
+from train import get_new_model
 
 VISIBLE_DISTANCE = 4
 neigh_input_dim=4*(2*VISIBLE_DISTANCE+1)*(2*VISIBLE_DISTANCE+1)
@@ -60,8 +60,12 @@ logging.basicConfig(format='%(asctime)-15s %(message)s',
 if __name__ == '__main__':
     myID, gameMap = getInit()
 
-    model = get_trained_model()
-    # model = get_new_model()
+    run_id = 0
+    if len(sys.argv) > 1:
+        run_id =  int(sys.argv[1])
+        model = load_model("data/qmodel_%s.h5" % (run_id-1)) # load previous model
+    else:
+        model = get_new_model()
 
     sendInit('joelator')
     logging.info("My ID: %s", myID)
@@ -91,7 +95,7 @@ if __name__ == '__main__':
 
 
         logging.info("%s a:%s Q:%.2f t+1:%.2f reward:%.2f maxQt+1:%.2f %s", position, move, Q, territory, territory - old_territory, max(Qs), Qs)
-        with open("games.csv", "ab") as f:
+        with open("data/games_%s.csv" % run_id, "ab") as f:
             np.savetxt(f, np.hstack([Qinput, [territory-old_territory, max(Qs)]]), newline=" ")
             f.write(b"\n")
 

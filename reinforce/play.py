@@ -14,7 +14,7 @@ from networking import getInit, sendFrame, sendInit, getFrame
 from hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
 import logging
 import sys
-from train import get_trained_model, get_new_model
+from train import get_new_model
 from reinforce import predict_for_pos, frame_to_stack, stack_to_input, get_territory
 
 logging.basicConfig(format='%(asctime)-15s %(message)s',
@@ -22,7 +22,7 @@ logging.basicConfig(format='%(asctime)-15s %(message)s',
 
 myID, gameMap = getInit()
 
-model = get_trained_model()
+model = load_model("data/qmodel_10.h5")
 
 sendInit('joelator')
 logging.info("My ID: %s", myID)
