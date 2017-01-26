@@ -3,6 +3,7 @@
 """ Experiment with Q learning """
 
 import random
+import math
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Activation, Dropout
 from keras.layers.normalization import BatchNormalization
@@ -51,8 +52,14 @@ def gamma(array, exp=2):
     temp = array ** exp
     return temp/temp.sum()
 
-def get_territory(frame, player):
-    return np.array([[x.owner==player for x in row] for row in frame.contents]).sum()
+def get_reward(frame, player):
+    game_map = np.array([[(x.owner, x.production, x.strength) for x in row] for row in frame.contents])
+    my_territory = game_map[...,0]==player
+    territory =  (game_map[my_territory,0]==player).sum()
+    production =  (game_map[my_territory,2]==player).sum()
+    strength =  (game_map[my_territory,2]==player).sum()
+    assert territory == np.array([[x.owner==player for x in row] for row in frame.contents]).sum()
+    return territory + 0.01 * strength
 
 logging.basicConfig(format='%(asctime)-15s %(message)s',
         level=logging.INFO, filename="bot.log")
@@ -79,24 +86,28 @@ if __name__ == '__main__':
         area_inputs = stack_to_input(stack, position)
         possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, model)
         # Sample a move following Pi(s)
-        index = np.random.choice(range(len(possible_moves)), p=Qs.ravel())
+        def softmax(x):
+            """ Turn Q values into probabilities """
+            e_x = np.exp(x - np.max(x))
+            return e_x / e_x.sum(axis=0) # only difference
+        index = np.random.choice(range(len(possible_moves)), p=softmax(Qs.ravel()))
         move = possible_moves[index]
         Q = Qs[index]
         Qinput = Qinputs[index]
         sendFrame([Move(Location(position[1],position[0]), move)])
         turn += 1
-        old_territory = get_territory(frame, myID)
+        old_reward = get_reward(frame, myID)
 
         frame = getFrame()
         stack = frame_to_stack(frame, myID)
         area_inputs = stack_to_input(stack, position)
         possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, model)
-        territory = get_territory(frame, myID)
+        reward = get_reward(frame, myID)
 
 
-        logging.info("%s a:%s Q:%.2f t+1:%.2f reward:%.2f maxQt+1:%.2f %s", position, move, Q, territory, territory - old_territory, max(Qs), Qs)
+        logging.info("%s a:%s Q:%.2f V+1:%.2f reward:%.2f maxQt+1:%.2f %s", position, move, Q, reward, reward - old_reward, max(Qs), Qs)
         with open("data/games_%s.csv" % run_id, "ab") as f:
-            np.savetxt(f, np.hstack([Qinput, [territory-old_territory, max(Qs)]]), newline=" ")
+            np.savetxt(f, np.hstack([Qinput, [reward-old_reward, max(Qs)]]), newline=" ")
             f.write(b"\n")
 
         # new position for next turn

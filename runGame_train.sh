@@ -1,7 +1,7 @@
 #!/bin/bash
 rm data/*
 echo "Starting initial round..."
-for repeat in {1..10}
+for repeat in {1..100}
 do
   echo "Repeat #$repeat"
   rm ./*.log
@@ -9,6 +9,8 @@ do
   cat ./*.log
 done
 ./reinforce/train.py
+
+exit #FIXME
 
 for run in {1..10}
 do

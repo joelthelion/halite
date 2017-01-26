@@ -15,14 +15,14 @@ from hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
 import logging
 import sys
 from train import get_new_model
-from reinforce import predict_for_pos, frame_to_stack, stack_to_input, get_territory
+from reinforce import predict_for_pos, frame_to_stack, stack_to_input
 
 logging.basicConfig(format='%(asctime)-15s %(message)s',
         level=logging.INFO, filename="bot.log")
 
 myID, gameMap = getInit()
 
-model = load_model("data/qmodel_10.h5")
+model = load_model("data/qmodel_0.h5")
 
 sendInit('joelator')
 logging.info("My ID: %s", myID)
@@ -38,8 +38,9 @@ while True:
         possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, model)
         # Sample a move following Pi(s)
         index = np.argmax(Qs)
-        moves.append(possible_moves[index])
+        logging.info("%d (%s)", index, Qs)
+        moves.append((position[1], position[0], possible_moves[index]))
     # Q = Qs[index]
     # Qinput = Qinputs[index]
 
-    sendFrame([Move(Location(position[1],position[0]), move) for move in moves])
+    sendFrame([Move(Location(px,py), move) for (px,py,move) in moves])
