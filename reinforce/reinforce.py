@@ -15,12 +15,7 @@ from networking import getInit, sendFrame, sendInit, getFrame
 from hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
 import logging
 import sys
-from train import get_new_model
-
-VISIBLE_DISTANCE = 4
-neigh_input_dim=4*(2*VISIBLE_DISTANCE+1)*(2*VISIBLE_DISTANCE+1)
-action_input_dim=5
-input_dim = neigh_input_dim + action_input_dim + 1 # (1 for current state value)
+from train import get_new_model, VISIBLE_DISTANCE
 
 
 def stack_to_input(stack, position):
@@ -45,7 +40,7 @@ def predict_for_pos(area_input, model):
     inputs = np.vstack([np.concatenate([area_input,one_hot(n, 5)] )
         for n in range(len(possible_moves))])
     outputs = model.predict(inputs)
-    outputs /= sum(outputs)
+    # outputs /= sum(outputs)
     return possible_moves, inputs, outputs.ravel()
 
 def gamma(array, exp=2):
@@ -55,16 +50,17 @@ def gamma(array, exp=2):
 def get_reward(frame, player):
     game_map = np.array([[(x.owner, x.production, x.strength) for x in row] for row in frame.contents])
     my_territory = game_map[...,0]==player
-    territory =  (game_map[my_territory,0]==player).sum()
-    production =  (game_map[my_territory,2]==player).sum()
-    strength =  (game_map[my_territory,2]==player).sum()
+    territory  = my_territory.sum()
+    production = game_map[my_territory,1].sum()
+    strength   = game_map[my_territory,2].sum()
+    logging.info("t: %d p:%d s:%d", territory, production, strength)
     assert territory == np.array([[x.owner==player for x in row] for row in frame.contents]).sum()
-    return territory + 0.01 * strength
+    return territory + 0.005 * strength
 
-logging.basicConfig(format='%(asctime)-15s %(message)s',
-        level=logging.INFO, filename="bot.log")
 
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)-15s %(message)s',
+            level=logging.INFO, filename="bot.log")
     myID, gameMap = getInit()
 
     run_id = 0

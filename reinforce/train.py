@@ -14,22 +14,21 @@ from networking import getInit, sendFrame, sendInit, getFrame
 from hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
 import sys
 
+VISIBLE_DISTANCE = 2
+neigh_input_dim=4*(2*VISIBLE_DISTANCE+1)*(2*VISIBLE_DISTANCE+1)
+action_input_dim=5
+input_dim = neigh_input_dim + action_input_dim
+
 
 def get_new_model():
-    VISIBLE_DISTANCE = 4
-    neigh_input_dim=4*(2*VISIBLE_DISTANCE+1)*(2*VISIBLE_DISTANCE+1)
-    action_input_dim=5
-    input_dim = neigh_input_dim + action_input_dim
-
-
     # input: state + action. output: value at next turn
-    model = Sequential([Dense(512, input_dim=input_dim),
+    model = Sequential([Dense(64, input_dim=input_dim),
                         LeakyReLU(),
                         BatchNormalization(),
-                        Dense(512),
+                        Dense(64),
                         LeakyReLU(),
                         BatchNormalization(),
-                        Dense(512),
+                        Dense(64),
                         LeakyReLU(),
                         BatchNormalization(),
                         # Dense(1)]) # linear activation
@@ -51,7 +50,7 @@ def train(model, run_id):
     # outputs = reward + 0.9*maxQ1 # 0.9 discount
     print(outputs)
     print(outputs.shape)
-    model.fit(inputs, outputs, validation_split=0.5, nb_epoch = 10,
+    model.fit(inputs, outputs, validation_split=0.5, nb_epoch = 20,
           callbacks=[EarlyStopping(patience=10),
                      ModelCheckpoint('data/qmodel_%s.h5'%run_id,verbose=1,save_best_only=True)]
             )
