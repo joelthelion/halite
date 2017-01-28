@@ -45,12 +45,12 @@ def train(model, run_id):
     print(data.shape)
     columns = data.shape[1]
     inputs, reward, maxQ1 = np.hsplit(data,[columns-2,columns-1])
-    reward = (reward + 1) / 2.
-    outputs = reward
-    # outputs = reward + 0.9*maxQ1 # 0.9 discount
+    reward = (reward + 1) / 10.
+    # outputs = reward
+    outputs = reward + 0.9*maxQ1 # 0.9 discount
     print(outputs)
     print(outputs.shape)
-    model.fit(inputs, outputs, validation_split=0.5, nb_epoch = 20,
+    model.fit(inputs, outputs, validation_split=0.5, nb_epoch = 50,
           callbacks=[EarlyStopping(patience=10),
                      ModelCheckpoint('data/qmodel_%s.h5'%run_id,verbose=1,save_best_only=True)]
             )

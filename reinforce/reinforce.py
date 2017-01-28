@@ -47,15 +47,17 @@ def gamma(array, exp=2):
     temp = array ** exp
     return temp/temp.sum()
 
-def get_reward(frame, player):
+def get_reward(frame, player, position):
     game_map = np.array([[(x.owner, x.production, x.strength) for x in row] for row in frame.contents])
     my_territory = game_map[...,0]==player
     territory  = my_territory.sum()
     production = game_map[my_territory,1].sum()
     strength   = game_map[my_territory,2].sum()
+    assert my_territory[position[0],position[1]] == True
+    local_strength = game_map[position[0], position[1], 2]
     logging.info("t: %d p:%d s:%d", territory, production, strength)
     assert territory == np.array([[x.owner==player for x in row] for row in frame.contents]).sum()
-    return territory + 0.005 * strength
+    return territory + 0.002 * local_strength
 
 
 if __name__ == '__main__':
@@ -92,13 +94,13 @@ if __name__ == '__main__':
         Qinput = Qinputs[index]
         sendFrame([Move(Location(position[1],position[0]), move)])
         turn += 1
-        old_reward = get_reward(frame, myID)
+        old_reward = get_reward(frame, myID, position)
 
         frame = getFrame()
         stack = frame_to_stack(frame, myID)
         area_inputs = stack_to_input(stack, position)
         possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, model)
-        reward = get_reward(frame, myID)
+        reward = get_reward(frame, myID, position)
 
 
         logging.info("%s a:%s Q:%.2f V+1:%.2f reward:%.2f maxQt+1:%.2f %s", position, move, Q, reward, reward - old_reward, max(Qs), Qs)
