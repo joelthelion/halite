@@ -14,7 +14,7 @@ from networking import getInit, sendFrame, sendInit, getFrame
 from hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
 import sys
 
-VISIBLE_DISTANCE = 2
+VISIBLE_DISTANCE = 1
 neigh_input_dim=4*(2*VISIBLE_DISTANCE+1)*(2*VISIBLE_DISTANCE+1)
 action_input_dim=5
 input_dim = neigh_input_dim + action_input_dim
@@ -24,15 +24,12 @@ def get_new_model():
     # input: state + action. output: value at next turn
     model = Sequential([Dense(64, input_dim=input_dim),
                         LeakyReLU(),
-                        BatchNormalization(),
                         Dense(64),
                         LeakyReLU(),
-                        BatchNormalization(),
                         Dense(64),
                         LeakyReLU(),
-                        BatchNormalization(),
-                        # Dense(1)]) # linear activation
-                        Dense(1, activation='sigmoid')])
+                        Dense(1)]) # linear activation
+                        # Dense(1, activation='sigmoid')])
     model.compile('nadam','mse')
     model.predict(np.zeros((2,input_dim))).shape # make sure model is compiled during init
     return model
