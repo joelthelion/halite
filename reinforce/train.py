@@ -24,10 +24,10 @@ def get_new_model():
     # input: state + action. output: value at next turn
     model = Sequential([Dense(64, input_dim=input_dim),
                         LeakyReLU(),
-                        Dense(64),
-                        LeakyReLU(),
-                        Dense(64),
-                        LeakyReLU(),
+                        # Dense(64),
+                        # LeakyReLU(),
+                        # Dense(64),
+                        # LeakyReLU(),
                         Dense(1)]) # linear activation
                         # Dense(1, activation='sigmoid')])
     model.compile('nadam','mse')
@@ -42,7 +42,7 @@ def train(model, run_id):
     print(data.shape)
     columns = data.shape[1]
     inputs, reward, maxQ1 = np.hsplit(data,[columns-2,columns-1])
-    reward = (reward + 1) / 10.
+    # reward = (reward + 1) / 10.
     # outputs = reward
     outputs = reward + 0.9*maxQ1 # 0.9 discount
     print(outputs)

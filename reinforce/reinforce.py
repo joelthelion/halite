@@ -53,8 +53,9 @@ def get_reward(frame, player, position):
     territory  = my_territory.sum()
     production = game_map[my_territory,1].sum()
     strength   = game_map[my_territory,2].sum()
-    assert my_territory[position[0],position[1]] == True
     local_strength = game_map[position[0], position[1], 2]
+    if not my_territory[position[0],position[1]]:
+        local_strength = -local_strength # not my square anymore
     logging.info("t: %d p:%d s:%d", territory, production, strength)
     assert territory == np.array([[x.owner==player for x in row] for row in frame.contents]).sum()
     return territory + 0.002 * local_strength

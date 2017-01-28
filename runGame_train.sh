@@ -1,7 +1,8 @@
 #!/bin/bash
+repeats=50
 rm data/*
 echo "Starting initial round..."
-for repeat in {1..20}
+for repeat in $(seq 1 $repeats)
 do
   echo "Repeat #$repeat"
   rm bot.log
@@ -13,7 +14,7 @@ done
 for run in {1..10}
 do
   echo "Starting round ${run}..."
-  for repeat in {1..20}
+  for repeat in $(seq 1 $repeats)
   do
     echo "Repeat #$repeat"
     rm bot.log
