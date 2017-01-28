@@ -1,2 +1,2 @@
 rm bot.zip
-zip bot.zip *.py *.hd5
+zip bot.zip MyBot.py data/*.h5 reinforce/*.py

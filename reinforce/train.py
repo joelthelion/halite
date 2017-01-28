@@ -2,17 +2,17 @@
 
 """ Experiment with Q learning (training) """
 
+import sys
 import random
+import numpy as np
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Activation, Dropout
 from keras.layers.normalization import BatchNormalization
 from keras.optimizers import RMSprop, SGD
 from keras.layers.advanced_activations import LeakyReLU
 from keras.callbacks import EarlyStopping,ModelCheckpoint
-import numpy as np
-from networking import getInit, sendFrame, sendInit, getFrame
-from hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
-import sys
+from .networking import getInit, sendFrame, sendInit, getFrame
+from .hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
 
 VISIBLE_DISTANCE = 1
 neigh_input_dim=4*(2*VISIBLE_DISTANCE+1)*(2*VISIBLE_DISTANCE+1)

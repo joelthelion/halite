@@ -1,4 +1,4 @@
-from hlt import *
+from .hlt import *
 import sys
 
 _productions = []
