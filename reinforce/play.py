@@ -22,7 +22,7 @@ logging.basicConfig(format='%(asctime)-15s %(message)s',
 
 myID, gameMap = getInit()
 
-model = load_model("data/qmodel_9.h5")
+model = load_model("data/qmodel_4.h5")
 
 sendInit('joelator')
 logging.info("My ID: %s", myID)
@@ -32,24 +32,24 @@ while True:
     frame = getFrame()
     stack = frame_to_stack(frame, myID)
     positions = np.transpose(np.nonzero(stack[0]))
-    position = random.choice(positions)
+    # position = random.choice(positions)
     moves = []
-    # for position in positions:
-    area_inputs = stack_to_input(stack, position)
-    possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, model)
-    # Sample a move following Pi(s)
-    def softmax(x):
-        """ Turn Q values into probabilities """
-        e_x = np.exp(x - np.max(x))
-        return e_x / e_x.sum(axis=0) # only difference
-    def harden(x, e=2):
-        exp = x**e
-        return exp/exp.sum()
-    Ps = harden(softmax(Qs.ravel()))
-    index = np.random.choice(range(len(possible_moves)), p=Ps)
-    index = np.argmax(Ps)
-    logging.info("%d Qs: %s Ps: %s", index, Qs, Ps)
-    moves.append((position[1], position[0], possible_moves[index]))
+    for position in positions:
+        area_inputs = stack_to_input(stack, position)
+        possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, model)
+        # Sample a move following Pi(s)
+        def softmax(x):
+            """ Turn Q values into probabilities """
+            e_x = np.exp(x - np.max(x))
+            return e_x / e_x.sum(axis=0) # only difference
+        def harden(x, e=2):
+            exp = x**e
+            return exp/exp.sum()
+        Ps = harden(softmax(Qs.ravel()))
+        # index = np.random.choice(range(len(possible_moves)), p=Ps)
+        index = np.argmax(Ps)
+        logging.info("%d Qs: %s Ps: %s", index, Qs, Ps)
+        moves.append((position[1], position[0], possible_moves[index]))
 
 
     sendFrame([Move(Location(px,py), move) for (px,py,move) in moves])

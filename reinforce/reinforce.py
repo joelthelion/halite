@@ -47,19 +47,30 @@ def gamma(array, exp=2):
     temp = array ** exp
     return temp/temp.sum()
 
-def get_reward(frame, player, position):
+def get_stats(frame, player, position):
     game_map = np.array([[(x.owner, x.production, x.strength) for x in row] for row in frame.contents])
     my_territory = game_map[...,0]==player
     territory  = my_territory.sum()
+    assert territory == np.array([[x.owner==player for x in row] for row in frame.contents]).sum()
     production = game_map[my_territory,1].sum()
     strength   = game_map[my_territory,2].sum()
     local_strength = game_map[position[0], position[1], 2]
     if not my_territory[position[0],position[1]]:
         local_strength = -local_strength # not my square anymore
-    logging.info("t: %d p:%d s:%d", territory, production, strength)
-    assert territory == np.array([[x.owner==player for x in row] for row in frame.contents]).sum()
-    return territory + 0.002 * local_strength
+    logging.info("t: %d p:%d s:%d ls:%d", territory, production, strength, local_strength)
+    return territory, production, strength, local_strength
 
+def get_reward(old_frame, frame, player, position):
+    old_territory, old_production, old_strength, old_local_strength = get_stats(old_frame,player,position)
+    territory, production, strength, local_strength = get_stats(frame,player,position)
+    strength_delta = local_strength - old_local_strength
+    if strength_delta <= 0:
+        strength_bonus = -0.5
+    elif strength_delta == 0:
+        strength_bonus = 0.
+    else:
+        strength_bonus = 0.5
+    return territory - old_territory + strength_bonus
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)-15s %(message)s',
@@ -95,18 +106,17 @@ if __name__ == '__main__':
         Qinput = Qinputs[index]
         sendFrame([Move(Location(position[1],position[0]), move)])
         turn += 1
-        old_reward = get_reward(frame, myID, position)
+        old_frame = frame
 
         frame = getFrame()
         stack = frame_to_stack(frame, myID)
         area_inputs = stack_to_input(stack, position)
         possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, model)
-        reward = get_reward(frame, myID, position)
+        reward = get_reward(old_frame, frame, myID, position)
 
-
-        logging.info("%s a:%s Q:%.2f V+1:%.2f reward:%.2f maxQt+1:%.2f %s", position, move, Q, reward, reward - old_reward, max(Qs), Qs)
+        logging.info("%s a:%s Q:%.2f reward:%.2f maxQt+1:%.2f %s", position, move, Q, reward, max(Qs), Qs)
         with open("data/games_%s.csv" % run_id, "ab") as f:
-            np.savetxt(f, np.hstack([Qinput, [reward-old_reward, max(Qs)]]), newline=" ")
+            np.savetxt(f, np.hstack([Qinput, [reward, max(Qs)]]), newline=" ")
             f.write(b"\n")
 
         # new position for next turn

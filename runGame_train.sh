@@ -1,5 +1,5 @@
 #!/bin/bash
-repeats=50
+repeats=15
 rm data/*
 echo "Starting initial round..."
 for repeat in $(seq 1 $repeats)
