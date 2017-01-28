@@ -7,5 +7,4 @@ halite
 .Rproj.user
 *.csv
 .Rhistory
-*.h5
 bot.log

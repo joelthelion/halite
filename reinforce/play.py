@@ -16,7 +16,7 @@ from hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
 import logging
 import sys
 from train import get_new_model
-from reinforce import predict_for_pos, frame_to_stack, stack_to_input
+from reinforce import predict_for_pos, frame_to_stack, stack_to_input, one_hot
 
 logging.basicConfig(format='%(asctime)-15s %(message)s',
         level=logging.INFO, filename="play.log")
@@ -29,6 +29,17 @@ model = load_model(model_file)
 sendInit('joelator')
 logging.info("My ID: %s", myID)
 
+def predict_for_game(stack, positions, model):
+    possible_moves = np.array([NORTH, EAST, SOUTH, WEST, STILL])
+    inputs = np.vstack([np.vstack(
+        [np.concatenate([stack_to_input(stack, position),one_hot(n, 5)] )
+            for n in range(len(possible_moves))])
+        for position in positions])
+    outputs = np.split(model.predict(inputs), len(positions))
+    # outputs /= sum(outputs)
+    return possible_moves, np.split(inputs, len(positions)), [o.ravel() for o in outputs]
+
+
 while True:
     np.set_printoptions(precision=3)
     frame = getFrame()
@@ -36,9 +47,8 @@ while True:
     positions = np.transpose(np.nonzero(stack[0]))
     # position = random.choice(positions)
     moves = []
-    for position in positions:
-        area_inputs = stack_to_input(stack, position)
-        possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, model)
+    possible_moves, allQinputs, allQs = predict_for_game(stack, positions, model)
+    for position, Qinputs, Qs in zip(positions, allQinputs, allQs):
         # Sample a move following Pi(s)
         def softmax(x):
             """ Turn Q values into probabilities """
