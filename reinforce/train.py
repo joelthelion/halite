@@ -11,8 +11,8 @@ from keras.layers.normalization import BatchNormalization
 from keras.optimizers import RMSprop, SGD
 from keras.layers.advanced_activations import LeakyReLU
 from keras.callbacks import EarlyStopping,ModelCheckpoint
-from .networking import getInit, sendFrame, sendInit, getFrame
-from .hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
+from networking import getInit, sendFrame, sendInit, getFrame
+from hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
 
 VISIBLE_DISTANCE = 1
 neigh_input_dim=4*(2*VISIBLE_DISTANCE+1)*(2*VISIBLE_DISTANCE+1)

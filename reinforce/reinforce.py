@@ -13,9 +13,9 @@ from keras.layers.normalization import BatchNormalization
 from keras.optimizers import RMSprop, SGD
 from keras.layers.advanced_activations import LeakyReLU
 from keras.callbacks import EarlyStopping,ModelCheckpoint
-from .networking import getInit, sendFrame, sendInit, getFrame
-from .hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
-from .train import get_new_model, VISIBLE_DISTANCE
+from networking import getInit, sendFrame, sendInit, getFrame
+from hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
+from train import get_new_model, VISIBLE_DISTANCE
 
 
 def stack_to_input(stack, position):
