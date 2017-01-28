@@ -3,6 +3,7 @@
 """ Experiment with Q learning """
 
 import random
+import os
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Activation, Dropout
 from keras.layers.normalization import BatchNormalization
@@ -22,7 +23,8 @@ logging.basicConfig(format='%(asctime)-15s %(message)s',
 
 myID, gameMap = getInit()
 
-model = load_model("data/qmodel_4.h5")
+model_file = "data/%s" % sorted([x for x in os.listdir("data") if x.endswith("h5")])[-1]
+model = load_model(model_file)
 
 sendInit('joelator')
 logging.info("My ID: %s", myID)

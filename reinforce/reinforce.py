@@ -65,14 +65,15 @@ def get_reward(old_frame, frame, player, position):
     territory, production, strength, local_strength = get_stats(frame,player,position)
     strength_delta = local_strength - old_local_strength
     if strength_delta <= 0:
-        strength_bonus = -0.5
+        strength_bonus = -0.2
     elif strength_delta == 0:
         strength_bonus = 0.
     else:
-        strength_bonus = 0.5
+        strength_bonus = 0.2
     return territory - old_territory + strength_bonus
 
 if __name__ == '__main__':
+    np.set_printoptions(precision=3)
     logging.basicConfig(format='%(asctime)-15s %(message)s',
             level=logging.INFO, filename="bot.log")
     myID, gameMap = getInit()
@@ -100,13 +101,18 @@ if __name__ == '__main__':
             """ Turn Q values into probabilities """
             e_x = np.exp(x - np.max(x))
             return e_x / e_x.sum(axis=0) # only difference
-        index = np.random.choice(range(len(possible_moves)), p=softmax(Qs.ravel()))
+        def harden(x, e=2):
+            exp = x**e
+            return exp/exp.sum()
+        Ps = harden(softmax(Qs.ravel()))
+        index = np.random.choice(range(len(possible_moves)), p=Ps)
         move = possible_moves[index]
         Q = Qs[index]
         Qinput = Qinputs[index]
         sendFrame([Move(Location(position[1],position[0]), move)])
         turn += 1
         old_frame = frame
+        old_Qs = Qs
 
         frame = getFrame()
         stack = frame_to_stack(frame, myID)
@@ -114,7 +120,8 @@ if __name__ == '__main__':
         possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, model)
         reward = get_reward(old_frame, frame, myID, position)
 
-        logging.info("%s a:%s Q:%.2f reward:%.2f maxQt+1:%.2f %s", position, move, Q, reward, max(Qs), Qs)
+        logging.info("%s a:%s Q:%.2f reward:%.2f maxQt+1:%.2f Qs: %s Ps: %s",
+                position, move, Q, reward, max(Qs), old_Qs, Ps)
         with open("data/games_%s.csv" % run_id, "ab") as f:
             np.savetxt(f, np.hstack([Qinput, [reward, max(Qs)]]), newline=" ")
             f.write(b"\n")
