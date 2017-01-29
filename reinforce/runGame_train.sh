@@ -7,10 +7,10 @@ for repeat in $(seq 1 $base_repeats)
 do
   echo "Repeat #$repeat"
   rm bot.log
-  ./halite -t -q -d "${size}" "python ./reinforce/reinforce.py" "python RandomBot.py"
+  ./halite -t -q -d "${size}" "python reinforce.py" "python ../RandomBot.py"
   cat bot.log
 done
-./reinforce/train.py
+./train.py
 
 for run in {1..10}
 do
@@ -21,8 +21,8 @@ do
   do
     echo "Repeat #$repeat"
     rm bot.log
-    ./halite -t -q -d "${size}" "python ./reinforce/reinforce.py $run" "python RandomBot.py"
+    ./halite -t -q -d "${size}" "python reinforce.py $run" "python ../RandomBot.py"
     cat bot.log
   done
-  ./reinforce/train.py $run
+  ./train.py $run
 done
