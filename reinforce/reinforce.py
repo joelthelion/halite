@@ -87,6 +87,7 @@ if __name__ == '__main__':
     turn = 0
     frame = getFrame()
     stack = frame_to_stack(frame, myID)
+    allQs = []
     # Only pick one random position for easier q-learning
     while True:
         position = random.choice(np.transpose(np.nonzero(stack[0])))
@@ -104,6 +105,7 @@ if __name__ == '__main__':
         index = np.random.choice(range(len(possible_moves)), p=Ps)
         move = possible_moves[index]
         Q = Qs[index]
+        allQs.append(Q)
         Qinput = Qinputs[index]
         sendFrame([Move(Location(position[1],position[0]), move)])
         turn += 1
@@ -117,8 +119,7 @@ if __name__ == '__main__':
         reward = get_reward(old_frame, frame, myID, position)
 
         def handler(sig, frame):
-            print("CLoucoucloup")
-            logging.info("Before exit!")
+            logging.info("Average Q value: %.2f", np.array(allQs).mean())
             sys.exit(0)
         signal(SIGTERM, handler)
 
