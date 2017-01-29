@@ -93,18 +93,13 @@ if __name__ == '__main__':
         position = random.choice(np.transpose(np.nonzero(stack[0])))
         area_inputs = stack_to_input(stack, position)
         possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, model)
-        # Sample a move following Pi(s)
-        def softmax(x):
-            """ Turn Q values into probabilities """
-            e_x = np.exp(x - np.max(x))
-            return e_x / e_x.sum(axis=0) # only difference
-        def harden(x, e=2):
-            exp = x**e
-            return exp/exp.sum()
-        Ps = harden(softmax(Qs.ravel()))
-        index = np.random.choice(range(len(possible_moves)), p=Ps)
-        move = possible_moves[index]
+        # Epsilon greedy strategy
+        if random.random() < 0.1:
+            index = np.random.choice(range(len(possible_moves)))
+        else:
+            index = np.argmax(Qs)
         Q = Qs[index]
+        move = possible_moves[index]
         allQs.append(Q)
         Qinput = Qinputs[index]
         sendFrame([Move(Location(position[1],position[0]), move)])
@@ -119,12 +114,13 @@ if __name__ == '__main__':
         reward = get_reward(old_frame, frame, myID, position)
 
         def handler(sig, frame):
-            logging.info("Average Q value: %.2f", np.array(allQs).mean())
+            logging.info("Before exit")
+            logging.info("Average chosen Q value: %.2f", np.array(allQs).mean())
             sys.exit(0)
         signal(SIGTERM, handler)
 
-        logging.info("%s a:%s Q:%.2f reward:%.2f maxQt+1:%.2f Qs: %s Ps: %s",
-                position, move, Q, reward, max(Qs), old_Qs, Ps)
+        logging.info("%s a:%s Q:%.2f reward:%.2f maxQt+1:%.2f Qs: %s",
+                position, move, Q, reward, max(Qs), old_Qs)
         with open("data/games_%s.csv" % run_id, "ab") as f:
             np.savetxt(f, np.hstack([Qinput, [reward, max(Qs)]]), newline=" ")
             f.write(b"\n")
