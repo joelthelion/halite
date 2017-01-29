@@ -14,7 +14,7 @@ from keras.callbacks import EarlyStopping,ModelCheckpoint
 from networking import getInit, sendFrame, sendInit, getFrame
 from hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
 
-VISIBLE_DISTANCE = 1
+VISIBLE_DISTANCE = 2
 neigh_input_dim=4*(2*VISIBLE_DISTANCE+1)*(2*VISIBLE_DISTANCE+1)
 action_input_dim=5
 input_dim = neigh_input_dim + action_input_dim
@@ -24,8 +24,8 @@ def get_new_model():
     # input: state + action. output: value at next turn
     model = Sequential([Dense(64, input_dim=input_dim),
                         LeakyReLU(),
-                        # Dense(64),
-                        # LeakyReLU(),
+                        Dense(64),
+                        LeakyReLU(),
                         # Dense(64),
                         # LeakyReLU(),
                         Dense(1)]) # linear activation
