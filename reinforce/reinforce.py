@@ -5,8 +5,9 @@
 import random
 import logging
 import sys
+from signal import signal, SIGINT, SIGTERM
 import numpy as np
-from keras.model import load_model
+from keras.models import load_model
 from networking import getInit, sendFrame, sendInit, getFrame
 from hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
 from train import get_new_model, VISIBLE_DISTANCE
@@ -114,6 +115,12 @@ if __name__ == '__main__':
         area_inputs = stack_to_input(stack, position)
         possible_moves, Qinputs, Qs = predict_for_pos(area_inputs, model)
         reward = get_reward(old_frame, frame, myID, position)
+
+        def handler(sig, frame):
+            print("CLoucoucloup")
+            logging.info("Before exit!")
+            sys.exit(0)
+        signal(SIGTERM, handler)
 
         logging.info("%s a:%s Q:%.2f reward:%.2f maxQt+1:%.2f Qs: %s Ps: %s",
                 position, move, Q, reward, max(Qs), old_Qs, Ps)
