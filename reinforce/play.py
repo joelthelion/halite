@@ -2,24 +2,16 @@
 
 """ Experiment with Q learning """
 
-import random
 import os
-from keras.models import Sequential, load_model
-from keras.layers import Dense, Activation, Dropout
-from keras.layers.normalization import BatchNormalization
-from keras.optimizers import RMSprop, SGD
-from keras.layers.advanced_activations import LeakyReLU
-from keras.callbacks import EarlyStopping,ModelCheckpoint
+import logging
+from keras.models import load_model
 import numpy as np
 from networking import getInit, sendFrame, sendInit, getFrame
 from hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
-import logging
-import sys
-from train import get_new_model
-from reinforce import predict_for_pos, frame_to_stack, stack_to_input, one_hot
+from reinforce import frame_to_stack, stack_to_input, one_hot
 
 logging.basicConfig(format='%(asctime)-15s %(message)s',
-        level=logging.INFO, filename="play.log")
+        level=logging.ERROR, filename="play.log")
 
 myID, gameMap = getInit()
 
@@ -38,7 +30,6 @@ def predict_for_game(stack, positions, model):
     outputs = np.split(model.predict(inputs), len(positions))
     # outputs /= sum(outputs)
     return possible_moves, np.split(inputs, len(positions)), [o.ravel() for o in outputs]
-
 
 while True:
     np.set_printoptions(precision=3)
