@@ -3,16 +3,10 @@
 """ Experiment with Q learning """
 
 import random
-import math
 import logging
 import sys
 import numpy as np
-from keras.models import Sequential, load_model
-from keras.layers import Dense, Activation, Dropout
-from keras.layers.normalization import BatchNormalization
-from keras.optimizers import RMSprop, SGD
-from keras.layers.advanced_activations import LeakyReLU
-from keras.callbacks import EarlyStopping,ModelCheckpoint
+from keras.model import load_model
 from networking import getInit, sendFrame, sendInit, getFrame
 from hlt import NORTH, SOUTH, EAST, WEST, STILL, Move, Location
 from train import get_new_model, VISIBLE_DISTANCE
@@ -64,12 +58,13 @@ def get_reward(old_frame, frame, player, position):
     old_territory, old_production, old_strength, old_local_strength = get_stats(old_frame,player,position)
     territory, production, strength, local_strength = get_stats(frame,player,position)
     strength_delta = local_strength - old_local_strength
+    bonus = 0.2
     if strength_delta <= 0:
-        strength_bonus = -0.2
+        strength_bonus = -bonus
     elif strength_delta == 0:
         strength_bonus = 0.
     else:
-        strength_bonus = 0.2
+        strength_bonus = bonus
     return territory - old_territory + strength_bonus
 
 if __name__ == '__main__':
